@@ -2,51 +2,33 @@ package com.inkrodriguez.login
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import com.inkrodriguez.login.Dao.AppDataBase
-import com.inkrodriguez.login.Dao.UserEntity
+import androidx.lifecycle.ViewModelProvider
+import com.inkrodriguez.login.ViewModel.MainViewModel
 import com.inkrodriguez.login.databinding.ActivityMainBinding
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private lateinit var viewModel: MainViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar?.hide()
 
+        viewModel = ViewModelProvider(this@MainActivity)[MainViewModel::class.java]
+        viewModel.setContext(applicationContext)
+
+
         binding.tvInfoRegistro.setOnClickListener {
-            startActivity(Intent(this, addUserActivity::class.java))
+            startActivity(Intent(this@MainActivity, addUserActivity::class.java))
         }
 
         binding.btnSignIn.setOnClickListener {
-            authentication()
-        }
-
-
-    }
-
-    fun authentication() {
-        lifecycleScope.launch {
-            val editUsername = binding.editUsername.text.toString()
-            val editPassword = binding.editPassword.text.toString()
-            val userEdit = UserEntity(editUsername, editPassword)
-            val resultAuthentication =
-                AppDataBase(this@MainActivity).getUserDao().authenticationUser(userEdit.username, userEdit.password)
-
-            if(resultAuthentication != null ){
-                Toast.makeText(this@MainActivity, "Os dados foram conferidos, bem-vindo(a)!", Toast.LENGTH_SHORT).show()
-
-                startActivity(Intent(applicationContext, PerfilUser::class.java).putExtra("username", resultAuthentication.username))
-
-
-            }else{
-                Toast.makeText(this@MainActivity, "Os dados não existem!", Toast.LENGTH_SHORT).show()
-            }
+            viewModel.editUsername.value = binding.editUsername.text.toString()
+            viewModel.editPassword.value = binding.editPassword.text.toString()
+            viewModel.authentication()
         }
     }
-
 }
